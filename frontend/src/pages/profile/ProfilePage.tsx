@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { Container, Paper, Typography, TextField, Button, Box, Avatar } from '@mui/material';
+import Grid from '../../components/common/Grid';
+import { User } from '../../contexts/AuthContext';
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();

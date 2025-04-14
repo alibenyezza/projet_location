@@ -1,25 +1,26 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../services/api';
 
 // Types
 export interface User {
-  id: number;
-  email: string;
+  id: string;
   first_name: string;
   last_name: string;
-  role: string;
-  profile_picture?: string;
+  email: string;
+  role: 'tenant' | 'owner' | 'admin';
+  phone_number?: string;
   bio?: string;
-  is_verified: boolean;
+  profile_picture?: string;
+  is_verified?: boolean;
 }
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  isLoading: boolean;
   user: User | null;
+  loading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
+  register: (userData: any) => Promise<void>;
 }
 
 interface RegisterData {
@@ -35,104 +36,90 @@ interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const isAuthenticated = !!user;
 
-  // Check if user is already logged in (via token in localStorage)
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          // Set default auth header
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
-          // Get user data
-          const response = await api.get('/api/v1/profile');
-          setUser(response.data);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Auth check failed:', error);
-          // Clear invalid token
-          localStorage.removeItem('token');
-          api.defaults.headers.common['Authorization'] = '';
-        }
+    // Check if user is logged in
+    const checkLoggedIn = async () => {
+      try {
+        // Mock user for now
+        const mockUser: User = {
+          id: '1',
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john.doe@example.com',
+          role: 'tenant',
+          phone_number: '555-123-4567',
+          bio: 'I am a tenant looking for a nice place.',
+          profile_picture: 'https://via.placeholder.com/150',
+          is_verified: true,
+        };
+        setUser(mockUser);
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setIsLoading(false);
     };
 
-    checkAuthStatus();
+    checkLoggedIn();
   }, []);
 
-  // Login function
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
     try {
-      const response = await api.post('/api/v1/auth/login', { email, password });
-      const { token, user } = response.data;
-      
-      // Save token
-      localStorage.setItem('token', token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Update state
-      setUser(user);
-      setIsAuthenticated(true);
+      setLoading(true);
+      // Mock login for now
+      const mockUser: User = {
+        id: '1',
+        first_name: 'John',
+        last_name: 'Doe',
+        email: email,
+        role: 'tenant',
+        phone_number: '555-123-4567',
+        bio: 'I am a tenant looking for a nice place.',
+        profile_picture: 'https://via.placeholder.com/150',
+        is_verified: true,
+      };
+      setUser(mockUser);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login error:', error);
       throw error;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Register function
-  const register = async (userData: RegisterData) => {
-    setIsLoading(true);
-    try {
-      const response = await api.post('/api/v1/auth/register', userData);
-      const { token, user } = response.data;
-      
-      // Save token
-      localStorage.setItem('token', token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Update state
-      setUser(user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Logout function
   const logout = () => {
-    // Clear token
-    localStorage.removeItem('token');
-    api.defaults.headers.common['Authorization'] = '';
-    
-    // Update state
     setUser(null);
-    setIsAuthenticated(false);
   };
 
-  // Context value
-  const contextValue: AuthContextType = {
-    isAuthenticated,
-    isLoading,
-    user,
-    login,
-    register,
-    logout
+  const register = async (userData: any) => {
+    try {
+      setLoading(true);
+      // Mock registration
+      const mockUser: User = {
+        id: '2',
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        email: userData.email,
+        role: userData.role || 'tenant',
+        is_verified: false,
+      };
+      setUser(mockUser);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

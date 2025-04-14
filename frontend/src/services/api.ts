@@ -1,13 +1,14 @@
 import axios from 'axios';
 
+// Create an API instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor for adding the auth token
+// Add a request interceptor to include auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -16,17 +17,21 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor for handling errors
+// Add a response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
-    // Handle unauthorized errors (401)
     if (error.response && error.response.status === 401) {
+      // Handle unauthorized errors (e.g., token expired)
       localStorage.removeItem('token');
-      // Optionally redirect to login page or dispatch logout action
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

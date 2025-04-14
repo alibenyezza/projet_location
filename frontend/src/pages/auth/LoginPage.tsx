@@ -1,92 +1,150 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+} from '@mui/material';
+import { Grid } from '../../components/common';
+
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      await login(email, password);
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(formData),
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error('Login failed');
+      // }
+      
+      // const data = await response.json();
+      // localStorage.setItem('token', data.token);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to login. Please check your credentials.');
+    } catch (err) {
+      setError('Invalid email or password');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-        Sign in to your account
-      </h2>
-      
-      {error && (
-        <div className="mt-4 p-2 bg-red-100 text-red-700 rounded-md text-sm text-center">
-          {error}
-        </div>
-      )}
-
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div className="-space-y-px">
-          <div>
-            <label htmlFor="email-address" className="sr-only">Email address</label>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="Email address"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="sr-only">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="Password"
-            />
-          </div>
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-          >
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </div>
-
-        <div className="text-sm text-center">
-          <span className="text-gray-600">Don't have an account? </span>
-          <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-            Sign up
-          </Link>
-        </div>
-      </form>
-    </div>
+    <Container maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography component="h1" variant="h5">
+            Sign In
+          </Typography>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+              {error}
+            </Alert>
+          )}
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+            <Grid container spacing={2}>
+              <Grid xs={12}>
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  name="email"
+                  autoComplete="email"
+                  autoFocus
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid xs={12}>
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="password"
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="current-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid xs={12}>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2 }}
+                  disabled={loading}
+                >
+                  {loading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </Grid>
+              <Grid xs={12}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Link to="/register" style={{ textDecoration: 'none' }}>
+                    <Typography variant="body2" color="primary">
+                      Don't have an account? Sign Up
+                    </Typography>
+                  </Link>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 
